@@ -1,3 +1,6 @@
+import { Allow, IsNotEmpty, MinLength, minLength } from 'class-validator';
 export class basicCreateTaskDTO {
-    taskName: string
+  @IsNotEmpty() //  validation pipe
+  @MinLength(3) //  validation pipe
+  taskName: string;
 }

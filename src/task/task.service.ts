@@ -1,23 +1,61 @@
-import { Injectable } from '@nestjs/common';
-import { Task, TaskStatus } from './task.model';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { TaskStatus } from './task.model';
 import { basicCreateTaskDTO } from './dtos/createTask.dto';
 import { randomUUID } from 'crypto';
+import { basicUpdateTaskDTO } from './dtos/updateTask.dto';
+import { TaskRepository } from './repositories/task.repository';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Task } from './entities/task.entity';
 @Injectable()
 export class TaskService {
-  tasks: Task[] = [];
+  constructor(
+    @InjectRepository(Task)
+    private taskRepository: TaskRepository,
+  ) {}
 
-  getAllTasks(): Task[] {
-    return this.tasks;
+  getAllTasks(): Promise<Task[]> {
+    return this.taskRepository.find();
   }
 
-  createTask(basicCreateTaskDTO: basicCreateTaskDTO): Task {
+  getSpecificTaskFromSystem(id: String): Promise<Task> {
+    return this.taskRepository.findOne({
+      where: {
+        id: id,
+      },
+    });
+  }
+
+  async createTask(basicCreateTaskDTO: basicCreateTaskDTO): Promise<Task> {
     let { taskName } = basicCreateTaskDTO;
-    const currentTask: Task = {
-      id: randomUUID(),
+    let createdTask = await this.taskRepository.create({
       name: taskName,
       status: TaskStatus.OPEN,
-    };
-    this.tasks.push(currentTask);
-    return currentTask;
+    });
+    await this.taskRepository.save(createdTask);
+    return createdTask;
+  }
+
+  async updateTaskInSystem(basicParameters: basicUpdateTaskDTO, id: string) {
+    let { taskStatus, name } = basicParameters;
+    let dataToChange = {};
+    if (taskStatus) {
+      dataToChange['status'] = taskStatus;
+    }
+    if (name) {
+      dataToChange['name'] = name;
+    }
+
+    // checking if the task exists with the same name
+    if (name) {
+      let existingTask = await this.taskRepository.findOne({
+        where: {
+          name: name,
+        },
+      });
+      if (existingTask && existingTask.id !== id) {
+        throw new BadRequestException('Task with the same name already exists');
+      }
+    }
+    await this.taskRepository.update({ id: id }, dataToChange);
   }
 }
