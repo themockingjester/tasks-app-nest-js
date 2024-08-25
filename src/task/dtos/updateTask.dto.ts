@@ -8,7 +8,7 @@ import {
   MinLength,
   minLength,
 } from 'class-validator';
-import { TaskStatus } from '../task.model';
+import { TaskStatus } from '../task.enums';
 
 export class basicUpdateTaskDTO {
   @IsOptional()

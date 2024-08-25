@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { TaskStatus } from './task.model';
+import { TaskStatus } from './task.enums';
 import { basicCreateTaskDTO } from './dtos/createTask.dto';
 import { randomUUID } from 'crypto';
 import { basicUpdateTaskDTO } from './dtos/updateTask.dto';
@@ -29,7 +29,7 @@ export class TaskService {
     let { taskName } = basicCreateTaskDTO;
     let createdTask = await this.taskRepository.create({
       name: taskName,
-      status: TaskStatus.OPEN,
+      status: TaskStatus.TODO,
     });
     await this.taskRepository.save(createdTask);
     return createdTask;
@@ -57,5 +57,15 @@ export class TaskService {
       }
     }
     await this.taskRepository.update({ id: id }, dataToChange);
+    return {
+      message: 'Task updated successfully',
+    };
+  }
+
+  async deleteTaskFromSystem(taskId: string) {
+    this.taskRepository.delete({ id: taskId });
+    return {
+      message: 'Task deleted successfully',
+    };
   }
 }

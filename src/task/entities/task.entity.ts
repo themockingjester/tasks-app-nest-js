@@ -1,5 +1,5 @@
 import { PrimaryGeneratedColumn } from 'typeorm';
-import { TaskStatus } from '../task.model';
+import { TaskStatus } from '../task.enums';
 
 const { Entity, Column, PrimaryColumn } = require('typeorm');
 
